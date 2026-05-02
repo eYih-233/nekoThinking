@@ -1,0 +1,550 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>600</width>
+    <height>700</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Answer Book</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QLabel" name="titleLabel">
+      <property name="text">
+       <string>Answer Book</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <spacer name="verticalSpacer">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
+     <widget class="QLineEdit" name="questionEdit">
+      <property name="placeholderText">
+       <string>Enter your question...</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <spacer name="verticalSpacer_2">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
+     <widget class="QPushButton" name="openAnswerButton">
+      <property name="text">
+       <string>Open Answer</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <spacer name="verticalSpacer_3">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
+     <widget class="QLabel" name="answerLabel">
+      <property name="text">
+       <string>Please enter your question and click Open Answer</string>
+      </property>
+      <property name="wordWrap">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <spacer name="verticalSpacer_4">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
+     <widget class="QLabel" name="historyTitle">
+      <property name="text">
+       <string>History</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QTableWidget" name="historyTable">
+      <column>
+       <property name="text">
+        <string>Time</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Question</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Answer</string>
+       </property>
+      </column>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
+
+# ��֮����Ŀ�ļ�
+QT       += core gui sql
+
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+
+CONFIG += c++17
+
+# ����UTF-8����
+msvc {
+    QMAKE_CXXFLAGS += /utf-8
+}
+gcc {
+    QMAKE_CXXFLAGS += -finput-charset=UTF-8 -fexec-charset=UTF-8
+}
+
+# ��ĿԴ�ļ�
+SOURCES += \
+    main.cpp \
+    mainwindow.cpp \
+    answerdata.cpp
+
+# ��Ŀͷ�ļ�
+HEADERS += \
+    mainwindow.h \
+    answerdata.h
+
+# UI�ļ�
+FORMS += \
+    mainwindow.ui
+
+# Ĭ�Ϲ���
+qnx: target.path = /tmp/$${TARGET}/bin
+else: unix:!android: target.path = /opt/$${TARGET}/bin
+!isEmpty(target.path): INSTALLS += target
+
+# ��Դ�ļ�
+RESOURCES +=
+
+# �����ļ��������룬����������ʱ��
+OTHER_FILES += \
+    data/answers.txt
+
+#include "answerdata.h"
+#include <QFile>
+#include <QTextStream>
+#include <QDebug>
+
+// ���캯��
+AnswerData::AnswerData()
+    : m_rng(QRandomGenerator::global()->generate())
+{
+}
+
+// ���ļ����ش𰸿�
+bool AnswerData::loadAnswers(const QString &fileName)
+{
+    QFile file(fileName);
+
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        qDebug() << "Cannot open answer file:" << fileName;
+        return false;
+    }
+
+    QTextStream in(&file);
+    m_answers.clear();
+
+    while (!in.atEnd())
+    {
+        QString line = in.readLine().trimmed();
+        if (!line.isEmpty())
+        {
+            m_answers.append(line);
+        }
+    }
+
+    file.close();
+    qDebug() << "Loaded" << m_answers.size() << "answers";
+    return true;
+}
+
+// �����ȡһ����
+QString AnswerData::getRandomAnswer()
+{
+    if (m_answers.isEmpty())
+    {
+        return "Answer library is empty, please add answers first!";
+    }
+
+    int index = m_rng.bounded(m_answers.size());
+    return m_answers[index];
+}
+
+// ��ȡ������
+int AnswerData::getAnswerCount() const
+{
+    return m_answers.size();
+}
+
+// �����´�
+void AnswerData::addAnswer(const QString &answer)
+{
+    if (!answer.trimmed().isEmpty())
+    {
+        m_answers.append(answer.trimmed());
+    }
+}
+
+#ifndef ANSWERDATA_H
+#define ANSWERDATA_H
+
+#include <QString>
+#include <QStringList>
+#include <QRandomGenerator>
+
+// �����ݹ�����
+class AnswerData
+{
+public:
+    AnswerData();
+
+    // ���ļ����ش𰸿�
+    bool loadAnswers(const QString &fileName);
+
+    // �����ȡһ����
+    QString getRandomAnswer();
+
+    // ��ȡ������
+    int getAnswerCount() const;
+
+    // �����´�
+    void addAnswer(const QString &answer);
+
+private:
+    QStringList m_answers;  // ���б�
+    QRandomGenerator m_rng; // �����������
+};
+
+#endif // ANSWERDATA_H
+
+#include "mainwindow.h"
+
+#include <QApplication>
+
+// �������
+int main(int argc, char *argv[])
+{
+    QApplication a(argc, argv);
+
+    // ����Ӧ�ó�����Ϣ
+    a.setApplicationName("��֮��");
+    a.setOrganizationName("NKU");
+
+    MainWindow w;
+    w.show();
+
+    return a.exec();
+}
+
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+#include <QFile>
+#include <QDir>
+#include <QMessageBox>
+#include <QCoreApplication>
+
+// ���캯��
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+    , ui(new Ui::MainWindow)
+    , m_answerData(new AnswerData)
+{
+    ui->setupUi(this);
+
+    // ���ô��ڱ���
+    setWindowTitle("Answer Book");
+
+    // ��ʼ��UI��ʽ
+    initStyle();
+
+    // ���ش𰸿�
+    loadAnswerLibrary();
+
+    // �����źŲ�
+    connect(ui->openAnswerButton, &QPushButton::clicked, this, &MainWindow::onOpenAnswerClicked);
+}
+
+// ��������
+MainWindow::~MainWindow()
+{
+    delete m_answerData;
+    delete ui;
+}
+
+// ��ʼ��UI��ʽ
+void MainWindow::initStyle()
+{
+    // ���ô��ڴ�С
+    setFixedSize(600, 700);
+
+    // ���ñ������䣨��������ɫ��
+    QString style = R"(
+        QMainWindow {
+            background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                stop:0 #1a0a2e, stop:1 #2d1b4e);
+        }
+
+        QLabel#titleLabel {
+            color: #ffd700;
+            font-size: 28px;
+            font-weight: bold;
+            font-family: "Microsoft YaHei";
+        }
+
+        QLineEdit#questionEdit {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 2px solid #8b5cf6;
+            border-radius: 10px;
+            padding: 10px;
+            color: white;
+            font-size: 16px;
+            font-family: "Microsoft YaHei";
+        }
+
+        QLineEdit#questionEdit:focus {
+            border: 2px solid #a78bfa;
+        }
+
+        QPushButton#openAnswerButton {
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                stop:0 #7c3aed, stop:1 #5b21b6);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            font-family: "Microsoft YaHei";
+        }
+
+        QPushButton#openAnswerButton:hover {
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                stop:0 #8b5cf6, stop:1 #6d28d9);
+        }
+
+        QPushButton#openAnswerButton:pressed {
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                stop:0 #5b21b6, stop:1 #4c1d95);
+        }
+
+        QLabel#answerLabel {
+            background-color: rgba(255, 255, 255, 0.08);
+            border: 2px solid #7c3aed;
+            border-radius: 15px;
+            padding: 20px;
+            color: #ffd700;
+            font-size: 20px;
+            font-family: "Microsoft YaHei";
+            qproperty-alignment: AlignCenter;
+        }
+
+        QLabel#historyTitle {
+            color: #a78bfa;
+            font-size: 18px;
+            font-weight: bold;
+            font-family: "Microsoft YaHei";
+        }
+
+        QTableWidget#historyTable {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid #5b21b6;
+            border-radius: 8px;
+            color: white;
+            font-family: "Microsoft YaHei";
+            gridline-color: #4c1d95;
+        }
+
+        QTableWidget#historyTable::item {
+            padding: 8px;
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        QTableWidget#historyTable::item:selected {
+            background-color: rgba(139, 92, 246, 0.3);
+        }
+
+        QHeaderView::section {
+            background-color: #5b21b6;
+            color: white;
+            padding: 8px;
+            border: none;
+            font-weight: bold;
+            font-family: "Microsoft YaHei";
+        }
+
+        QScrollBar:vertical {
+            background-color: rgba(255, 255, 255, 0.1);
+            width: 12px;
+            border-radius: 6px;
+        }
+
+        QScrollBar::handle:vertical {
+            background-color: #7c3aed;
+            border-radius: 6px;
+            min-height: 30px;
+        }
+
+        QScrollBar::handle:vertical:hover {
+            background-color: #8b5cf6;
+        }
+    )";
+
+    this->setStyleSheet(style);
+
+    // ���ó�ʼ���ı�
+    ui->answerLabel->setText("Please enter your question and click Open Answer");
+}
+
+// ���ش𰸿�
+void MainWindow::loadAnswerLibrary()
+{
+    QString dataPath = QDir::currentPath() + "/data/answers.txt";
+
+    // �����ǰĿ¼�Ҳ��������Կ�ִ���ļ�����Ŀ¼
+    if (!QFile::exists(dataPath))
+    {
+        dataPath = QCoreApplication::applicationDirPath() + "/data/answers.txt";
+    }
+
+    if (m_answerData->loadAnswers(dataPath))
+    {
+        qDebug() << "Answer library loaded successfully, total" << m_answerData->getAnswerCount() << "answers";
+    }
+    else
+    {
+        // �������ʧ�ܣ�����һЩĬ�ϴ�
+        m_answerData->addAnswer("Yes, definitely!");
+        m_answerData->addAnswer("Think it over.");
+        m_answerData->addAnswer("Don't rush, the time is not yet right.");
+        m_answerData->addAnswer("Believe in yourself, you can do it!");
+        m_answerData->addAnswer("Maybe look at it from a different angle.");
+        qDebug() << "Failed to load answer library, using default answers";
+    }
+}
+
+// ��������𰸰�ť
+void MainWindow::onOpenAnswerClicked()
+{
+    QString question = ui->questionEdit->text().trimmed();
+
+    // ����Ƿ�����������
+    if (question.isEmpty())
+    {
+        QMessageBox::warning(this, "Warning", "Please enter your question!");
+        return;
+    }
+
+    // ��ȡ�����
+    QString answer = m_answerData->getRandomAnswer();
+
+    // ��ʾ��
+    ui->answerLabel->setText(answer);
+
+    // �������򣨿�ѡ�������´����룩
+    // ui->questionEdit->clear();
+}
+
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
+
+#include <QMainWindow>
+#include "answerdata.h"
+
+QT_BEGIN_NAMESPACE
+namespace Ui { class MainWindow; }
+QT_END_NAMESPACE
+
+// ��������
+class MainWindow : public QMainWindow
+{
+    Q_OBJECT
+
+public:
+    MainWindow(QWidget *parent = nullptr);
+    ~MainWindow();
+
+private slots:
+    // ��������𰸰�ť
+    void onOpenAnswerClicked();
+
+private:
+    Ui::MainWindow *ui;
+    AnswerData *m_answerData; // �����ݹ�������
+
+    // ��ʼ��UI��ʽ
+    void initStyle();
+
+    // ���ش𰸿�
+    void loadAnswerLibrary();
+};
+
+#endif // MAINWINDOW_H
