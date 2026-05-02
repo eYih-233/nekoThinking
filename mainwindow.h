@@ -1,0 +1,43 @@
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
+
+#include <QMainWindow>
+#include "answerdata.h"
+#include "databasehandler.h"
+
+QT_BEGIN_NAMESPACE
+namespace Ui { class MainWindow; }
+QT_END_NAMESPACE
+
+// ????????
+class MainWindow : public QMainWindow
+{
+    Q_OBJECT
+
+public:
+    MainWindow(QWidget *parent = nullptr);
+    ~MainWindow();
+
+private slots:
+    // ???????????
+    void onOpenAnswerClicked();
+    
+    // ?????????
+    void onClearHistoryClicked();
+
+private:
+    Ui::MainWindow *ui;
+    AnswerData *m_answerData; // ?????????????
+    DatabaseHandler *m_dbHandler; // ????????????
+
+    // ?????UI???
+    void initStyle();
+
+    // ??????
+    void loadAnswerLibrary();
+    
+    // ????????????
+    void refreshHistoryDisplay();
+};
+
+#endif // MAINWINDOW_H
